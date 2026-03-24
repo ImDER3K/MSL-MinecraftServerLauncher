@@ -1,11 +1,21 @@
 # Minecraft Server Launcher
+<p align="center">
+  <a href="https://ko-fi.com/J3J01WLH0H">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" height="50">
+  </a>
+</p>
 
+<p align="center">
+  Support the project
+</p>
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0-blue">
   <img src="https://img.shields.io/badge/python-3.10+-green">
   <img src="https://img.shields.io/badge/ui-CustomTkinter-black">
   <img src="https://img.shields.io/badge/status-active-success">
 </p>
+
+
 
 Un gestor de servidores de Minecraft orientado a simplificar la creación, administración y monitoreo desde una sola interfaz.  
 
