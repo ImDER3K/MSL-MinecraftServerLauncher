@@ -87,11 +87,12 @@ Full server deletion directly from the app.
 
 ## Instalación / Installation
 
+```bash
 git clone https://github.com/tu-usuario/minecraft-server-launcher.git
 cd minecraft-server-launcher
 pip install -r requirements.txt
-python main.py
-
+python main.py`
+```
 ---
 
 ## Uso / Usage
@@ -111,6 +112,7 @@ Manage it from the console
 
 ## Estructura del proyecto / Project Structure
 
+```bash
 minecraft-server-launcher/
 │
 ├── main.py
@@ -119,6 +121,7 @@ minecraft-server-launcher/
 ├── ui/
 ├── utils/
 └── assets/
+```
 
 --- 
 ## Roadmap
@@ -158,6 +161,6 @@ Licencia / License
 
 ---
 
-Este proyecto está bajo licencia MIT.
+# Este proyecto está bajo licencia MIT.
 
-This project is licensed under the MIT License.
+# This project is licensed under the MIT License.
