@@ -92,8 +92,9 @@ cd minecraft-server-launcher
 pip install -r requirements.txt
 python main.py
 
+---
 
-Uso / Usage
+## Uso / Usage
 Español
 Crear un nuevo servidor
 Seleccionar versión y RAM
@@ -108,7 +109,8 @@ Manage it from the console
 
 ---
 
-Estructura del proyecto / Project Structure
+## Estructura del proyecto / Project Structure
+
 minecraft-server-launcher/
 │
 ├── main.py
@@ -119,7 +121,7 @@ minecraft-server-launcher/
 └── assets/
 
 --- 
-Roadmap
+## Roadmap
 
 Integración con túneles de red usando Playit (sin necesidad de abrir puertos)
 
@@ -139,7 +141,7 @@ Monitoring improvements
 
 ---
 
-Contribución / Contributing
+## Contribución / Contributing
 
 Español
 Haz un fork del proyecto
