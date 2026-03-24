@@ -135,6 +135,9 @@ minecraft-server-launcher/
 
 --- 
 ## Roadmap
+(proximamente)(coming soon)
+
+```bash
 
 Integración con túneles de red usando Playit (sin necesidad de abrir puertos)
 
@@ -152,7 +155,7 @@ Mejoras en monitoreo
 
 Monitoring improvements
 
----
+```
 
 ## Contribución / Contributing
 
