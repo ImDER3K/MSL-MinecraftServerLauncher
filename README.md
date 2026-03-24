@@ -98,7 +98,7 @@ Full server deletion directly from the app.
 ## Instalación / Installation
 
 ```bash
-git clone https://github.com/tu-usuario/minecraft-server-launcher.git
+git clone https://github.com/ImDER3K/MSL-MinecraftServerLauncher.git
 cd minecraft-server-launcher
 pip install -r requirements.txt
 python main.py`
