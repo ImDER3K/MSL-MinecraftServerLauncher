@@ -103,13 +103,13 @@ Full server deletion directly from the app.
 
 **Si eres un usuario que solo quiere crear su servidor**.
 
-desde (**la pagina web**) solo dale a descargar para Windows, ejecutalo
+desde [![Download](https://img.shields.io/badge/Download-Latest-blue?style=for-the-badge)](https://github.com/ImDER3K/MSL-MinecraftServerLauncher/releases/latest) solo dale a descargar , ejecutalo
 y todo estara listo para iniciar
 
 ***
 
 If you are only a user who whants to deploy his server.
-go to ( **page** ) click on Dowload and open the Launcher.
+go to [![Download](https://img.shields.io/badge/Download-Latest-blue?style=for-the-badge)](https://github.com/ImDER3K/MSL-MinecraftServerLauncher/releases/latest)  click on Dowload and open the Launcher.
 
 **Enjoy**
 
