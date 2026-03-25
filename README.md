@@ -109,7 +109,7 @@ y todo estara listo para iniciar
 ***
 
 If you are only a user who whants to deploy his server.
-go to [![Download](https://img.shields.io/badge/Download-Latest-blue?style=for-the-badge)](https://github.com/ImDER3K/MSL-MinecraftServerLauncher/releases/latest)  click on Dowload and open the Launcher.
+go to [![Download](https://img.shields.io/badge/Download-Latest-blue?style=for-the-badge)](https://github.com/ImDER3K/MSL-MinecraftServerLauncher/releases/latest)  download the .exe file and open the Launcher.
 
 **Enjoy**
 
