@@ -99,7 +99,26 @@ Full server deletion directly from the app.
 
 ---
 
-## Instalación / Installation
+# Instalación / Installation
+
+**Si eres un usuario que solo quiere crear su servidor**.
+
+desde (**la pagina web**) solo dale a descargar para Windows, ejecutalo
+y todo estara listo para iniciar
+
+***
+
+If you are only a user who whants to deploy his server.
+go to ( **page** ) click on Dowload and open the Launcher.
+
+**Enjoy**
+
+***
+
+# RECOMENDADO / RECOMENDED
+Actualizaciones y mantenimiento continuo mayor que el de la pagina
+<br></br>
+More continuous updates and maintenance than on the page
 
 ```bash
 git clone https://github.com/ImDER3K/MSL-MinecraftServerLauncher.git
@@ -143,19 +162,24 @@ minecraft-server-launcher/
 
 ```bash
 
-Integración con túneles de red usando Playit (sin necesidad de abrir puertos)
+Español
 
-Network tunneling integration with Playit (no port forwarding required)
+Integración con túneles de red usando Playit (sin necesidad de abrir puertos)
 
 Sistema de backups automáticos
 
-Automatic backup system
-
 Soporte para múltiples perfiles
 
-Multi-profile support
-
 Mejoras en monitoreo
+
+
+English
+
+Network tunneling integration with Playit (no port forwarding required)
+
+Automatic backup system
+
+Multi-profile support
 
 Monitoring improvements
 
