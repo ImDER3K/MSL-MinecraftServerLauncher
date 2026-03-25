@@ -1,10 +1,14 @@
 # Minecraft Server Launcher
+<div align="center">
+  <img src="https://i.postimg.cc/Yq4c171j/logoico.png" width="350"/>
+  <br/>
+  <b>Minecraft Server Launcher</b>
+</div>
 <p align="center">
   <a href="https://ko-fi.com/J3J01WLH0H">
     <img src="https://ko-fi.com/img/githubbutton_sm.svg" height="50">
   </a>
 </p>
-
 <p align="center">
   Support the project
 </p>
