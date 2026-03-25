@@ -1,16 +1,36 @@
+import sys
+import subprocess
+import os
+
+# Auto-instalador de dependencias: se encarga de instalar requirements.txt si falta algo.
+try:
+    import customtkinter as ctk
+    from PIL import Image
+except ImportError:
+    print("Instalando dependencias iniciales por primera vez (Solo tomará unos segundos)...")
+    try:
+        req_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
+        if os.path.exists(req_path):
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "-r", req_path])
+        else:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "customtkinter", "Pillow"])
+        print("¡Listo! Reiniciando programa...")
+        os.execv(sys.executable, ['python'] + sys.argv)
+    except Exception as e:
+        print(f"Error instalando dependencias: {e}")
+        input("Presiona Enter para salir...")
+        sys.exit(1)
+
 import tkinter as tk
 from tkinter import messagebox, filedialog, scrolledtext, ttk
-import subprocess
 import threading
 import json
-import os
 import shutil
 import re
 import urllib.request
 import urllib.error
 import socket
 from pathlib import Path
-import customtkinter as ctk
 
 # Import our new styles configuration and Network Manager
 import styles
@@ -25,6 +45,12 @@ class MinecraftLauncher:
 
         self.styles = styles.apply_styles()
         self.root.configure(fg_color=self.styles["colors"]["bg"])
+
+        try:
+            icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+            self.root.iconbitmap(icon_path)
+        except Exception:
+            pass
 
         if os.name == 'nt':
             appdata = os.getenv('APPDATA', str(Path.home() / 'AppData' / 'Roaming'))
