@@ -1,12 +1,9 @@
 import subprocess
 import threading
 import json
-import re
 import os
-import shutil
 import time
-import urllib.request
-import zipfile
+import shutil
 from pathlib import Path
 
 class BaseTunnel:
@@ -54,7 +51,11 @@ class PlayitTunnel(BaseTunnel):
 
     def _run_loop(self):
         try:
+            import re
+            ip_pattern = re.compile(r'([a-zA-Z0-9-]+\.(?:playit\.gg|auto\.playit\.gg):\d+)')
+            
             cmd = [self.executable_path]
+            import os
             creation_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             
             self.process = subprocess.Popen(
@@ -69,36 +70,27 @@ class PlayitTunnel(BaseTunnel):
                 creationflags=creation_flags
             )
             
-            buffer = ""
-            while self.running:
-                char = self.process.stdout.read(1)
-                if not char: break
-                if char != '\r': buffer += char
+            for line in iter(self.process.stdout.readline, ''):
+                if not self.running: break
+                line = line.strip()
+                if not line: continue
                 
-                if buffer.endswith("\n"):
-                    line = buffer.strip()
-                    if line and self.on_log: self.on_log(f"[{self.name}] {line}")
+                if self.on_log: self.on_log(f"[{self.name}] {line}")
+                
+                if "https://playit.gg/claim/" in line:
+                    self.update_status("Esperando Autenticación", None)
                     
-                    if "https://playit.gg/claim/" in line:
-                        self.update_status("Esperando Autenticación", None)
-                        
-                    match = re.search(r'([a-zA-Z0-9-]+\.(?:playit\.gg|auto\.playit\.gg):\d+)', line)
-                    if match:
-                        self.update_status("Activo", match.group(1))
-                    buffer = ""
-                else:
-                    lower_buf = buffer.lower()
-                    if lower_buf.endswith("? ") or "y/n" in lower_buf or "yes/no" in lower_buf or "yes or no" in lower_buf:
-                        if self.on_log: self.on_log(f"[{self.name} Prompt] {buffer}")
-                        try:
-                            self.process.stdin.write("yes\n")
-                            self.process.stdin.flush()
-                        except: pass
-                        buffer = ""
-                    elif "https://playit.gg/claim/" in buffer and len(buffer.split("claim/")[1]) > 5:
-                        if self.on_log: self.on_log(f"[{self.name} Setup] {buffer}")
-                        self.update_status("Esperando Autenticación", None)
-                        buffer = ""
+                match = ip_pattern.search(line)
+                if match:
+                    self.update_status("Activo", match.group(1))
+                
+                # Check for prompt
+                lower_line = line.lower()
+                if "? " in lower_line or "y/n" in lower_line or "yes/no" in lower_line:
+                    try:
+                        self.process.stdin.write("yes\n")
+                        self.process.stdin.flush()
+                    except: pass
                         
             if self.process: self.process.wait()
         except Exception as e:
@@ -125,7 +117,11 @@ class NgrokTunnel(BaseTunnel):
 
     def _run_loop(self):
         try:
+            import re
+            ip_pattern = re.compile(r'url=tcp://([a-zA-Z0-9.-]+:\d+)')
+            
             cmd = [self.executable_path, "tcp", "25565", "--log=stdout", "--authtoken", self.authtoken.strip()]
+            import os
             creation_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             
             self.process = subprocess.Popen(
@@ -142,14 +138,16 @@ class NgrokTunnel(BaseTunnel):
             for line in iter(self.process.stdout.readline, ''):
                 if not self.running: break
                 line = line.strip()
-                if line and self.on_log: self.on_log(f"[{self.name}] {line}")
+                if not line: continue
                 
-                # Check for token issues
-                if "authentication failed" in line.lower() or "requires a valid authtoken" in line.lower() or "requires a verified account" in line.lower():
+                if self.on_log: self.on_log(f"[{self.name}] {line}")
+                
+                lower_line = line.lower()
+                if "authentication failed" in lower_line or "requires a valid authtoken" in lower_line or "requires a verified account" in lower_line:
                     self.update_status("Error: Token Ngrok Inválido", None)
                     break
                     
-                match = re.search(r'url=tcp://([a-zA-Z0-9.-]+:\d+)', line)
+                match = ip_pattern.search(line)
                 if match:
                     self.update_status("Activo", match.group(1))
                     
@@ -214,12 +212,24 @@ class TunnelController:
         if self.on_log:
             self.on_log(text)
             
+    def is_installed(self, method=None):
+        if method == "Playit":
+            return shutil.which(self.playit_path) is not None or Path(self.playit_path).exists()
+        elif method == "Ngrok":
+            return shutil.which(self.ngrok_path) is not None or Path(self.ngrok_path).exists()
+        # Default check for active tunnel or both
+        return (shutil.which(self.playit_path) is not None or Path(self.playit_path).exists()) or \
+               (shutil.which(self.ngrok_path) is not None or Path(self.ngrok_path).exists())
+
     def _ensure_downloaded(self, method_name):
+        import urllib.request
+        import shutil
         bin_dir = Path(self.config_path).parent / "bin"
         bin_dir.mkdir(parents=True, exist_ok=True)
         
         if method_name == "Playit":
-            if not BaseTunnel(self.playit_path, "Playit").is_installed():
+            import os
+            if not self.is_installed("Playit"): # Fixed call
                 self.print_log("[Sistema] Playit no detectado. Intentando descargar automáticamente...")
                 p_path = bin_dir / ("playit.exe" if os.name == 'nt' else "playit")
                 try:
@@ -233,7 +243,9 @@ class TunnelController:
                     self.print_log(f"[Sistema] Error descargando Playit: {e}")
                     
         elif method_name == "Ngrok":
-            if not BaseTunnel(self.ngrok_path, "Ngrok").is_installed():
+            import os
+            import zipfile
+            if not self.is_installed("Ngrok"): # Fixed call
                 self.print_log("[Sistema] Ngrok no detectado. Intentando descargar automáticamente...")
                 n_zip = bin_dir / "ngrok.zip"
                 n_path = bin_dir / ("ngrok.exe" if os.name == 'nt' else "ngrok")
