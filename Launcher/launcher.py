@@ -394,7 +394,40 @@ class MinecraftLauncher:
         if self.tunnel_controller.is_running:
             self.tunnel_controller.stop()
         else:
+            pref = self.tunnel_controller.method_preference
+            playit_enabled = (pref == "playit") or (pref == "auto" and self.tunnel_controller.is_installed("Playit"))
+            
+            if playit_enabled:
+                self.show_playit_startup_popup()
+                
             self.tunnel_controller.start()
+
+    def show_playit_startup_popup(self):
+        popup = ctk.CTkToplevel(self.root)
+        popup.overrideredirect(True) # Quitar barra de título si se desea, o dejarla normal
+        popup.geometry("350x120")
+        popup.transient(self.root)
+        popup.configure(fg_color=self.styles["colors"]["bg"])
+        
+        # Center the popup slightly offset
+        try:
+            self.root.update_idletasks()
+            x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 175
+            y = self.root.winfo_y() + (self.root.winfo_height() // 2) - 60
+            popup.geometry(f"+{x}+{y}")
+        except:
+            pass
+        
+        border_frame = ctk.CTkFrame(popup, fg_color=self.styles["colors"]["primary"], corner_radius=10)
+        border_frame.pack(fill="both", expand=True, padx=2, pady=2)
+        
+        inner_frame = ctk.CTkFrame(border_frame, fg_color=self.styles["colors"]["bg"], corner_radius=8)
+        inner_frame.pack(fill="both", expand=True, padx=2, pady=2)
+        
+        lbl = ctk.CTkLabel(inner_frame, text="Abriendo playit (cargando...)", font=self.styles["fonts"]["heading"], text_color=self.styles["colors"]["text"])
+        lbl.pack(expand=True, fill="both", pady=20)
+        
+        self.root.after(3500, popup.destroy)
 
     def copy_ip(self):
         ip = self.public_ip_display.cget("text")
@@ -914,7 +947,11 @@ class MinecraftLauncher:
         if path_key in self.server_processes:
             ctk.CTkButton(self.btn_frame_start, text="Stop Server", font=self.styles["fonts"]["heading"],
                          fg_color=self.styles["colors"]["danger"], hover_color="#c1121f",
-                         command=lambda: self.stop_server(path_key)).pack(fill=tk.X, expand=True)
+                         command=lambda: self.stop_server(path_key)).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 2))
+                         
+            ctk.CTkButton(self.btn_frame_start, text="Restart", font=self.styles["fonts"]["heading"],
+                         fg_color="#ffb703", hover_color="#fb8500", text_color="#121212",
+                         command=lambda: self.stop_server(path_key, restart=True)).pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=(2, 0))
         else:
             ctk.CTkButton(self.btn_frame_start, text="Start Server", font=self.styles["fonts"]["heading"],
                          fg_color=self.styles["colors"]["success"], hover_color="#2b9348",
@@ -1090,7 +1127,7 @@ class MinecraftLauncher:
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    def stop_server(self, path_key):
+    def stop_server(self, path_key, restart=False):
         if path_key not in self.server_processes:
             return
             
@@ -1102,17 +1139,17 @@ class MinecraftLauncher:
                 process.stdin.flush()
                 # Wait a bit for graceful stop
                 process.wait(timeout=3)
-                self.root.after(0, self._finalize_stop, path_key)
+                self.root.after(0, self._finalize_stop, path_key, restart)
             except subprocess.TimeoutExpired:
                 # If it didn't stop in 3s, ask the user
-                self.root.after(0, self._ask_force_kill, path_key)
+                self.root.after(0, self._ask_force_kill, path_key, restart)
             except Exception as e:
                 # Pipe might be broken if it already crashed
-                self.root.after(0, self._finalize_stop, path_key)
+                self.root.after(0, self._finalize_stop, path_key, restart)
 
         threading.Thread(target=attempt_stop, daemon=True).start()
 
-    def _ask_force_kill(self, path_key):
+    def _ask_force_kill(self, path_key, restart=False):
         if path_key not in self.server_processes:
             return
             
@@ -1133,14 +1170,16 @@ class MinecraftLauncher:
                 else:
                     process.kill()
             except: pass
-            self._finalize_stop(path_key)
+            self._finalize_stop(path_key, restart)
 
-    def _finalize_stop(self, path_key):
+    def _finalize_stop(self, path_key, restart=False):
         if path_key in self.server_processes:
             del self.server_processes[path_key]
             self.active_players[path_key] = set()
             self.refresh_servers()
             self.on_server_select(path_key)
+            if restart:
+                self.root.after(1000, lambda: self.start_server(path_key))
 
     def parse_console_for_players(self, path_key, line):
         # Existing player tracking
