@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.bak
+
+build/
+dist/
+*.spec
+
+*.exe
+*.lnk
+
+Minecraft Server Launcher (Portable)/
