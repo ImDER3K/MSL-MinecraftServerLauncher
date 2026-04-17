@@ -164,24 +164,24 @@ minecraft-server-launcher/
 
 Español
 
-Integración con túneles de red usando Playit (sin necesidad de abrir puertos)
+✅Integración con túneles de red usando Playit 
 
-Sistema de backups automáticos
+❌Sistema de backups automáticos
 
-Soporte para múltiples perfiles
+❌Soporte para múltiples perfiles
 
-Mejoras en monitoreo
+❌Mejoras en monitoreo
 
 
 English
 
-Network tunneling integration with Playit (no port forwarding required)
+✅Network tunneling integration with Playit (no port forwarding required)
 
-Automatic backup system
+❌Automatic backup system
 
-Multi-profile support
+❌Multi-profile support
 
-Monitoring improvements
+❌Monitoring improvements
 
 ```
 
