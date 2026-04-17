@@ -13,7 +13,7 @@
   Support the project
 </p>
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0-blue">
+  <img src="https://img.shields.io/badge/version-1.1.2-blue">
   <img src="https://img.shields.io/badge/python-3.10+-green">
   <img src="https://img.shields.io/badge/ui-CustomTkinter-black">
   <img src="https://img.shields.io/badge/status-active-success">
