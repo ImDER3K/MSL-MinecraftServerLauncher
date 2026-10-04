@@ -3,7 +3,6 @@ import subprocess
 import os
 from subprocess import CREATE_NO_WINDOW
 
-# Auto-instalador de dependencias: se encarga de instalar requirements.txt si falta algo.
 try:
     import customtkinter as ctk
     from PIL import Image
@@ -39,7 +38,6 @@ import shutil
 import urllib.request
 import urllib.error
 
-# Import our new styles configuration and Network Manager
 import styles
 from network_manager import TunnelController
 
@@ -85,7 +83,6 @@ class MinecraftLauncher:
         # Public Network Integration (Dual Tunnel)
         self.tunnel_controller = TunnelController(self.data_dir)
 
-        # Optimization: Log queue and periodic UI update
         self.log_queue = queue.Queue()
         self.log_patterns = {
             "error": re.compile(r'ERROR|Exception|Failed|Error', re.IGNORECASE),
@@ -570,6 +567,11 @@ class MinecraftLauncher:
             
             name = data.get("name", "Unknown Server")
             version = data.get("version", "Vanilla")
+            s_type = data.get("type", "Paper")
+            if s_type == "Geyser + Floodgate":
+                ver_text = f"v{version} (Java + Bedrock)"
+            else:
+                ver_text = f"v{version} ({s_type})"
 
             card = ctk.CTkFrame(self.server_list_frame, fg_color=bg_color, corner_radius=8, cursor="hand2")
             card.pack(fill=tk.X, pady=5, padx=5)
@@ -580,7 +582,7 @@ class MinecraftLauncher:
             name_lbl = ctk.CTkLabel(text_frame, text=name, font=self.styles["fonts"]["heading"], text_color=self.styles["colors"]["text"])
             name_lbl.pack()
             
-            ver_lbl = ctk.CTkLabel(text_frame, text=f"v{version}", font=self.styles["fonts"]["body"], text_color=self.styles["colors"]["text_muted"])
+            ver_lbl = ctk.CTkLabel(text_frame, text=ver_text, font=self.styles["fonts"]["body"], text_color=self.styles["colors"]["text_muted"])
             ver_lbl.pack()
 
             status_line = ctk.CTkFrame(card, fg_color=status_color, height=4, corner_radius=0)
@@ -642,10 +644,10 @@ class MinecraftLauncher:
         row_frame1.pack(fill=tk.X, pady=(0, 10))
         
         ctk.CTkLabel(row_frame1, text="Type:").grid(row=0, column=0, sticky="w")
-        ctk.CTkOptionMenu(row_frame1, variable=type_var, values=["Paper", "Vanilla", "Forge"], width=150).grid(row=1, column=0, sticky="w", padx=(0,10))
+        ctk.CTkOptionMenu(row_frame1, variable=type_var, values=["Paper", "Vanilla", "Forge", "Geyser + Floodgate"], width=150).grid(row=1, column=0, sticky="w", padx=(0,10))
         
         ctk.CTkLabel(row_frame1, text="Minecraft Version:").grid(row=0, column=1, sticky="w")
-        ver_menu = ctk.CTkOptionMenu(row_frame1, variable=ver_var, values=["1.21.1", "1.20.4", "1.19.4", "1.18.2", "1.16.5", "1.12.2"], width=150)
+        ver_menu = ctk.CTkOptionMenu(row_frame1, variable=ver_var, values=["1.21.4", "1.21.1", "1.21", "1.20.6", "1.20.4", "1.20.1", "1.19.4", "1.18.2", "1.17.1", "1.16.5", "1.12.2", "1.8.9"], width=150)
         ver_menu.grid(row=1, column=1, sticky="w")
 
         row_frame2 = ctk.CTkFrame(wrapper, fg_color="transparent")
@@ -691,22 +693,79 @@ class MinecraftLauncher:
             target_jar = target_folder / "server.jar"
             
             try:
-                if server_type == "Paper":
-                    status_lbl.configure(text="Fetching Paper API...")
-                    url = f"https://api.papermc.io/v2/projects/paper/versions/{ver}"
-                    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-                    with urllib.request.urlopen(req) as resp:
-                        data = json.loads(resp.read().decode())
-                        latest_build = data["builds"][-1]
-                    
-                    dl_url = f"https://api.papermc.io/v2/projects/paper/versions/{ver}/builds/{latest_build}/downloads/paper-{ver}-{latest_build}.jar"
-                    status_lbl.configure(text="Downloading Paper Jar...")
-                    req = urllib.request.Request(dl_url, headers={'User-Agent': 'Mozilla/5.0'})
-                    with urllib.request.urlopen(req) as resp, open(target_jar, 'wb') as f:
-                        shutil.copyfileobj(resp, f)
+                if server_type in ["Paper", "Geyser + Floodgate"]:
+                    paper_success = False
+                    try:
+                        status_lbl.configure(text="Fetching Paper API...")
+                        print(f"[Paper] Consultando API de PaperMC para la versión {ver}...")
+                        url = f"https://api.papermc.io/v2/projects/paper/versions/{ver}"
+                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urllib.request.urlopen(req) as resp:
+                            data = json.loads(resp.read().decode())
+                            latest_build = data["builds"][-1]
+                        
+                        dl_url = f"https://api.papermc.io/v2/projects/paper/versions/{ver}/builds/{latest_build}/downloads/paper-{ver}-{latest_build}.jar"
+                        status_lbl.configure(text="Downloading Paper Jar...")
+                        print(f"[Paper] Descargando Paper jar (build {latest_build}) desde {dl_url}...")
+                        req = urllib.request.Request(dl_url, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urllib.request.urlopen(req) as resp, open(target_jar, 'wb') as f:
+                            shutil.copyfileobj(resp, f)
+                        print("[Paper] Paper jar descargado con éxito.")
+                        paper_success = True
+                    except Exception as e:
+                        print(f"[Paper API Error] {e}. Intentando fallback a servidor Vanilla de Mojang...")
+
+                    if not paper_success:
+                        status_lbl.configure(text="Fetching Mojang API (Fallback)...")
+                        print("[Vanilla Fallback] Consultando manifiesto de Mojang...")
+                        manifest_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+                        with urllib.request.urlopen(manifest_url) as resp:
+                            manifest = json.loads(resp.read().decode())
+                        
+                        version_url = None
+                        for v in manifest.get("versions", []):
+                            if v["id"] == ver:
+                                version_url = v["url"]
+                                break
+                                
+                        if not version_url:
+                            raise Exception("No se pudo obtener el servidor de Minecraft para esta versión.")
+
+                        with urllib.request.urlopen(version_url) as resp:
+                            v_data = json.loads(resp.read().decode())
+                            if "server" not in v_data.get("downloads", {}):
+                                raise Exception("No hay servidor asignado para esta versión.")
+                            dl_url = v_data["downloads"]["server"]["url"]
+                            
+                        status_lbl.configure(text="Downloading Vanilla Server (Fallback)...")
+                        print(f"[Vanilla Fallback] Descargando servidor desde {dl_url}...")
+                        with urllib.request.urlopen(dl_url) as resp, open(target_jar, 'wb') as f:
+                            shutil.copyfileobj(resp, f)
+                        print("[Vanilla Fallback] Servidor descargado con éxito.")
+
+                    if server_type == "Geyser + Floodgate":
+                        status_lbl.configure(text="Installing Geyser & Floodgate plugins...")
+                        print("[Geyser + Floodgate] Copiando plugins desde la carpeta local GEYSER...")
+                        plugins_dir = target_folder / "plugins"
+                        plugins_dir.mkdir(parents=True, exist_ok=True)
+                        
+                        geyser_folder = Path(__file__).parent / "GEYSER"
+                        if not geyser_folder.exists():
+                            geyser_folder = Path("GEYSER")
+                        
+                        if geyser_folder.exists():
+                            jar_copied = 0
+                            for jar_file in geyser_folder.glob("*.jar"):
+                                shutil.copy2(jar_file, plugins_dir / jar_file.name)
+                                print(f"[Geyser + Floodgate] Plugin copiado: {jar_file.name}")
+                                jar_copied += 1
+                            print(f"[Geyser + Floodgate] Se copiaron {jar_copied} plugins de Geyser/Floodgate exitosamente.")
+                        else:
+                            print("[Error] No se encontró la carpeta local GEYSER con los plugins.")
 
                 elif server_type == "Vanilla":
                     status_lbl.configure(text="Fetching Mojang API...")
+                    print("[Vanilla] Consultando manifiesto de Mojang...")
                     manifest_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
                     with urllib.request.urlopen(manifest_url) as resp:
                         manifest = json.loads(resp.read().decode())
@@ -727,18 +786,26 @@ class MinecraftLauncher:
                         dl_url = v_data["downloads"]["server"]["url"]
                         
                     status_lbl.configure(text="Downloading Vanilla Jar...")
+                    print(f"[Vanilla] Descargando servidor Vanilla (versión {ver}) desde {dl_url}...")
                     with urllib.request.urlopen(dl_url) as resp, open(target_jar, 'wb') as f:
                         shutil.copyfileobj(resp, f)
+                    print("[Vanilla] server.jar de Vanilla descargado con éxito.")
                         
                 elif server_type == "Forge":
                     status_lbl.configure(text="Targeting Forge Maven...")
+                    print(f"[Forge] Apuntando a Maven de Forge para versión {ver}...")
                     FORGE_VERSIONS = {
+                        "1.21.4": "54.0.14",
                         "1.21.1": "51.0.32",
+                        "1.21": "51.0.8",
+                        "1.20.6": "50.1.0",
                         "1.20.4": "49.0.50",
+                        "1.20.1": "47.3.5",
                         "1.19.4": "45.3.3",
                         "1.18.2": "40.2.18",
                         "1.16.5": "36.2.39",
-                        "1.12.2": "14.23.5.2860"
+                        "1.12.2": "14.23.5.2860",
+                        "1.8.9": "11.15.1.2318"
                     }
                     if ver not in FORGE_VERSIONS:
                         raise Exception(f"Forge auto-installer not supported for version {ver}.")
@@ -748,13 +815,16 @@ class MinecraftLauncher:
                     installer_jar = target_folder / "installer.jar"
                     
                     status_lbl.configure(text=f"Downloading Forge Installer...")
+                    print(f"[Forge] Descargando instalador de Forge desde {installer_url}...")
                     req = urllib.request.Request(installer_url, headers={'User-Agent': 'Mozilla/5.0'})
                     with urllib.request.urlopen(req) as resp, open(installer_jar, 'wb') as f:
                         shutil.copyfileobj(resp, f)
+                    print("[Forge] Instalador descargado. Ejecutando instalador automático de Forge (esto puede tomar un momento)...")
                         
                     status_lbl.configure(text="Running Forge Auto-Installer (Please wait)...")
                     cmd = [java_path, "-jar", str(installer_jar), "--installServer"]
                     subprocess.run(cmd, cwd=str(target_folder), capture_output=True, check=True)
+                    print("[Forge] Instalación de Forge completada con éxito.")
                     
                     try:
                         installer_jar.unlink(missing_ok=True)
@@ -846,9 +916,11 @@ class MinecraftLauncher:
             return
 
         folder_name = os.path.basename(folder_path)
+        plugins_dir = Path(folder_path) / "plugins"
         
         if (Path(folder_path) / "mods").exists(): s_type = "Forge"
-        elif (Path(folder_path) / "plugins").exists(): s_type = "Paper"
+        elif (plugins_dir / "Geyser-Spigot.jar").exists() or any(plugins_dir.glob("*geyser*.jar")): s_type = "Geyser + Floodgate"
+        elif plugins_dir.exists(): s_type = "Paper"
         else: s_type = "Vanilla"
         
         self.servers[path_key] = {"name": folder_name, "version": "Unknown", "java_path": "java", "type": s_type}
